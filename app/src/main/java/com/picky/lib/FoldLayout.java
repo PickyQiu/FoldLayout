@@ -33,7 +33,44 @@ public class FoldLayout extends FrameLayout {
 
     public FoldLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        mDragHelper = ViewDragHelper.create(this, mDragHelperCallback);
+        ViewDragHelper.Callback mCallBack = new ViewDragHelper.Callback() {
+            @Override
+            public boolean tryCaptureView(View child, int pointerId) {
+
+                return view == child;
+            }
+
+            @Override
+            public int clampViewPositionVertical(View child, int top, int dy) {
+
+                if (top <= 0) {
+                    top = 0;
+                }
+
+                if (top >= mMenuHeight) {
+                    top = mMenuHeight;
+                }
+//                top为移动的位置
+                return top;
+            }
+
+            @Override
+            public void onViewReleased(View releasedChild, float xvel, float yvel) {
+                if (releasedChild == view) {
+                    if (view.getTop() > mMenuHeight / 2) {
+//                    （打开）
+                        mDragHelper.settleCapturedViewAt(0, mMenuHeight);
+                        isOpen = true;
+                    } else {
+//                    （关闭）
+                        mDragHelper.settleCapturedViewAt(0, 0);
+                        isOpen = false;
+                    }
+                    invalidate();
+                }
+            }
+        };
+        mDragHelper = ViewDragHelper.create(this, mCallBack);
     }
 
 
@@ -64,44 +101,6 @@ public class FoldLayout extends FrameLayout {
         mDragHelper.processTouchEvent(event);
         return true;
     }
-
-    private ViewDragHelper.Callback mDragHelperCallback = new ViewDragHelper.Callback() {
-        @Override
-        public boolean tryCaptureView(View child, int pointerId) {
-
-            return view == child;
-        }
-
-        @Override
-        public int clampViewPositionVertical(View child, int top, int dy) {
-
-            if (top <= 0) {
-                top = 0;
-            }
-
-            if (top >= mMenuHeight) {
-                top = mMenuHeight;
-            }
-            return top;
-        }
-
-        @Override
-        public void onViewReleased(View releasedChild, float xvel, float yvel) {
-            if (releasedChild == view) {
-                if (view.getTop() > mMenuHeight / 2) {
-//                    （打开）
-                    mDragHelper.settleCapturedViewAt(0, mMenuHeight);
-                    isOpen = true;
-                } else {
-//                    （关闭）
-                    mDragHelper.settleCapturedViewAt(0, 0);
-                    isOpen = false;
-                }
-                invalidate();
-            }
-        }
-    };
-
 
 
     @Override
